@@ -90,7 +90,7 @@ class StreamlitRouter:
         self.reset_request_state()
         st.session_state["request"] = (path, method)
         st.session_state["request_id"] = uuid4().hex
-        st.experimental_rerun()
+        st.rerun()
 
     def get_request_id(self):
         if st.session_state.get("request_id", None) is None:
@@ -133,15 +133,16 @@ class StreamlitRouter:
 
     def serve(self):
         request = st.session_state.get("request")
-        query_string = st.experimental_get_query_params()
+        query_string = st.query_params.get_all("request")
         if request:
             self.handle(*request)
             path, method = request
-            query_string["request"] = [f"{method}:{path}"]
-            st.experimental_set_query_params(**query_string)
-        elif "request" in query_string:
-            method, path = query_string.get("request")[0].split(":")
+            # query_string["request"] = [f"{method}:{path}"]
+            st.query_params["request"] = [f"{method}:{path}"]
+            # st.experimental_set_query_params(**query_string)
+        elif query_string:
+            method, path = query_string[0].split(":")
             st.session_state["request"] = (path, method)
-            st.experimental_rerun()
+            st.rerun()
         else:
             self.handle(self.default_path)
